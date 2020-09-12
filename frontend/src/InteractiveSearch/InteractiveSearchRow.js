@@ -124,8 +124,45 @@ class InteractiveSearchRow extends Component {
       isGrabbed,
       longDateFormat,
       timeFormat,
-      grabError
+      grabError,
+      releaseGuid,
+      movieHistory,
+      blacklist,
+      historyGrabDownloadIds = [],
+      historyFailedDownloads = []
     } = this.props;
+
+    let {
+      historyFailedData,
+      historyGrabbedData,
+      blacklistData
+    } = this.props;
+
+    if (blacklist) {
+      blacklistData = blacklist.find((item) => item.sourceTitle === title);
+    }
+
+    for (const h in movieHistory) {
+      if (movieHistory[h]) {
+        if (movieHistory[h].eventType === 'grabbed' && movieHistory[h].data.guid === releaseGuid) {
+          if (!historyGrabbedData) {
+            historyGrabbedData = movieHistory[h];
+          }
+          historyGrabDownloadIds.push(movieHistory[h].downloadId);
+        }
+
+        if (movieHistory[h].eventType === 'downloadFailed' && movieHistory[h].sourceTitle === title) {
+          historyFailedDownloads.push(movieHistory[h]);
+        }
+      }
+    }
+
+    for (const f in historyFailedDownloads) {
+      if (historyGrabDownloadIds.includes(historyFailedDownloads[f].downloadId)) {
+        historyFailedData = historyFailedDownloads[f];
+        break;
+      }
+    }
 
     return (
       <TableRow>
@@ -155,6 +192,37 @@ class InteractiveSearchRow extends Component {
 
         <TableRowCell className={styles.indexer}>
           {indexer}
+        </TableRowCell>
+
+        <TableRowCell className={styles.history}>
+          {
+            historyGrabbedData && !historyFailedData &&
+              <Icon
+                name={icons.DOWNLOADING}
+                kind={kinds.DEFAULT}
+                title={`${translate('Grabbed')}: ${formatDateTime(historyGrabbedData.date, longDateFormat, timeFormat, { includeSeconds: true })}`}
+              />
+          }
+
+          {
+            historyFailedData &&
+              <Icon
+                className={styles.failed}
+                name={icons.DOWNLOADING}
+                kind={kinds.DANGER}
+                title={`${translate('Failed')}: ${formatDateTime(historyFailedData.date, longDateFormat, timeFormat, { includeSeconds: true })}`}
+              />
+          }
+
+          {
+            blacklistData &&
+              <Icon
+                className={historyGrabbedData || historyFailedData ? styles.blacklist : ''}
+                name={icons.BLACKLIST}
+                kind={kinds.DANGER}
+                title={`${translate('Blacklisted')}: ${formatDateTime(blacklistData.date, longDateFormat, timeFormat, { includeSeconds: true })}`}
+              />
+          }
         </TableRowCell>
 
         <TableRowCell className={styles.size}>
@@ -304,7 +372,15 @@ InteractiveSearchRow.propTypes = {
   longDateFormat: PropTypes.string.isRequired,
   timeFormat: PropTypes.string.isRequired,
   searchPayload: PropTypes.object.isRequired,
-  onGrabPress: PropTypes.func.isRequired
+  onGrabPress: PropTypes.func.isRequired,
+  movieHistory: PropTypes.array,
+  blacklist: PropTypes.array,
+  releaseGuid: PropTypes.string.isRequired,
+  historyFailedData: PropTypes.object,
+  historyFailedDownloads: PropTypes.array,
+  historyGrabbedData: PropTypes.object,
+  historyGrabDownloadIds: PropTypes.array,
+  blacklistData: PropTypes.object
 };
 
 InteractiveSearchRow.defaultProps = {
