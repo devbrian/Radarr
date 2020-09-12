@@ -6,7 +6,7 @@ import Table from 'Components/Table/Table';
 import TableBody from 'Components/Table/TableBody';
 import { icons, sortDirections } from 'Helpers/Props';
 import translate from 'Utilities/String/translate';
-import InteractiveSearchRow from './InteractiveSearchRow';
+import InteractiveSearchRowConnector from './InteractiveSearchRowConnector';
 import styles from './InteractiveSearchContent.css';
 
 const columns = [
@@ -151,7 +151,7 @@ function InteractiveSearchContent(props) {
               {
                 items.map((item) => {
                   return (
-                    <InteractiveSearchRow
+                    <InteractiveSearchRowConnector
                       key={item.guid}
                       {...item}
                       searchPayload={searchPayload}

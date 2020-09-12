@@ -298,6 +298,7 @@ InteractiveSearchRow.propTypes = {
   rejections: PropTypes.arrayOf(PropTypes.string).isRequired,
   indexerFlags: PropTypes.arrayOf(PropTypes.string).isRequired,
   downloadAllowed: PropTypes.bool.isRequired,
+  previouslyGrabbed: PropTypes.bool.isRequired,
   isGrabbing: PropTypes.bool.isRequired,
   isGrabbed: PropTypes.bool.isRequired,
   grabError: PropTypes.string,
