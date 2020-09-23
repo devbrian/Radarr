@@ -208,9 +208,9 @@ namespace NzbDrone.Common.Disk
 
             var originalSize = _diskProvider.GetFileSize(sourcePath);
 
-            if (sourcePath == targetPath)
+            if (sourcePath.PathEquals(targetPath))
             {
-                throw new IOException(string.Format("Source and destination can't be the same {0}", sourcePath));
+              throw new IOException(string.Format("Source and destination can't be the same {0}", sourcePath));
             }
 
             if (sourcePath.PathEquals(targetPath, StringComparison.InvariantCultureIgnoreCase))
