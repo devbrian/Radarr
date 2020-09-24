@@ -15,6 +15,15 @@ jobs:
         dotnet-version: 3.1.100
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Run build.sh
-      run: ./build.sh
+    #- name: Run build.sh
+    #  run: ./build.sh
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v1.1.1
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: brianmedia/radarr
+          dockerfile: .github/Dockerfile
+
+
 
