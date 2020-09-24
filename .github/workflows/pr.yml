@@ -9,5 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Send greeting
-      run: echo "Hello ${{ github.event.inputs.name }}"
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1.7.0
+      with:
+        dotnet-version: 3.1
+    - name: Run build.sh
+      run: ./build.sh
+
