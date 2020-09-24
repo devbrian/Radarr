@@ -18,12 +18,14 @@ jobs:
     #- name: Run build.sh
     #  run: ./build.sh
     - name: Build and push Docker images
-      uses: docker/build-push-action@v1.1.1
+      uses: docker/build-push-action@v2
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: brianmedia/radarr
           dockerfile: .github/Dockerfile
+          push: true
+          tags: brianmedia/radarr:latest
+          
 
 
 
