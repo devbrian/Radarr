@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NLog;
 using NzbDrone.Common.Extensions;
 using NzbDrone.Common.Instrumentation.Extensions;
@@ -56,7 +57,7 @@ namespace NzbDrone.Core.Movies
             _logger = logger;
         }
 
-        private Movie RefreshMovieInfo(int movieId)
+        private void RefreshMovieInfo(Movie movie, Task<Tuple<Movie, List<Credit>>> dataTask)
         {
             // Get the movie before updating, that way any changes made to the movie after the refresh started,
             // but before this movie was refreshed won't be lost.
@@ -69,7 +70,7 @@ namespace NzbDrone.Core.Movies
 
             try
             {
-                var tuple = _movieInfo.GetMovieInfo(movie.TmdbId);
+                var tuple = dataTask.GetAwaiter().GetResult();
                 movieInfo = tuple.Item1;
                 credits = tuple.Item2;
             }
@@ -186,7 +187,19 @@ namespace NzbDrone.Core.Movies
 
             if (message.MovieIds.Any())
             {
-                foreach (var movieId in message.MovieIds)
+                var movie = _movieService.GetMovie(message.MovieId.Value);
+                var movieData = _movieInfo.GetMovieInfoAsync(movie.TmdbId);
+
+                try
+                {
+                    RefreshMovieInfo(movie, movieData);
+                    RescanMovie(movie, isNew, trigger);
+                }
+                catch (MovieNotFoundException)
+                {
+                    _logger.Error("Movie '{0}' (imdbid {1}) was not found, it may have been removed from The Movie Database.", movie.Title, movie.ImdbId);
+                }
+                catch (Exception e)
                 {
                     var movie = _movieService.GetMovie(movieId);
 
@@ -218,32 +231,45 @@ namespace NzbDrone.Core.Movies
                     updatedTMDBMovies = _movieInfo.GetChangedMovies(message.LastStartTime.Value);
                 }
 
-                foreach (var movie in allMovie)
-                {
-                    var movieLocal = movie;
-                    if ((updatedTMDBMovies.Count == 0 && _checkIfMovieShouldBeRefreshed.ShouldRefresh(movie)) || updatedTMDBMovies.Contains(movie.TmdbId) || message.Trigger == CommandTrigger.Manual)
-                    {
-                        try
-                        {
-                            movieLocal = RefreshMovieInfo(movieLocal.Id);
-                        }
-                        catch (MovieNotFoundException)
-                        {
-                            _logger.Error("Movie '{0}' (TMDb {1}) was not found, it may have been removed from The Movie Database.", movieLocal.Title, movieLocal.TmdbId);
-                            continue;
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.Error(e, "Couldn't refresh info for {0}", movieLocal);
-                        }
+                var toRefresh = allMovie
+                    .Where(movie => (updatedTMDBMovies.Count == 0 && _checkIfMovieShouldBeRefreshed.ShouldRefresh(movie)) ||
+                           updatedTMDBMovies.Contains(movie.TmdbId) ||
+                           message.Trigger == CommandTrigger.Manual)
+                    .ToList();
 
-                        RescanMovie(movieLocal, false, trigger);
-                    }
-                    else
+                var tasks = toRefresh.Take(5).Select(x => _movieInfo.GetMovieInfoAsync(x.TmdbId)).ToList();
+                var skipped = allMovie.Except(toRefresh);
+
+                foreach (var movie in skipped)
+                {
+                    _logger.Info("Skipping refresh of movie: {0}", movie.Title);
+                    RescanMovie(movie, false, trigger);
+                }
+
+                for (var i = 0; i < toRefresh.Count; i++)
+                {
+                    var movie = toRefresh[i];
+
+                    if (i + 5 < toRefresh.Count)
                     {
-                        _logger.Info("Skipping refresh of movie: {0}", movieLocal.Title);
-                        RescanMovie(movieLocal, false, trigger);
+                        tasks.Add(_movieInfo.GetMovieInfoAsync(toRefresh[i + 5].TmdbId));
                     }
+
+                    try
+                    {
+                        RefreshMovieInfo(movie, tasks[i]);
+                    }
+                    catch (MovieNotFoundException)
+                    {
+                        _logger.Error("Movie '{0}' (imdbid {1}) was not found, it may have been removed from The Movie Database.", movie.Title, movie.ImdbId);
+                        continue;
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, "Couldn't refresh info for {0}", movie);
+                    }
+
+                    RescanMovie(movie, false, trigger);
                 }
             }
 

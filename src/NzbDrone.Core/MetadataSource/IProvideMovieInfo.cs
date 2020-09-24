@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NzbDrone.Core.Movies;
 using NzbDrone.Core.Movies.Credits;
 
@@ -12,5 +13,7 @@ namespace NzbDrone.Core.MetadataSource
         List<Movie> GetBulkMovieInfo(List<int> tmdbIds);
 
         HashSet<int> GetChangedMovies(DateTime startTime);
+
+        Task<Tuple<Movie, List<Credit>>> GetMovieInfoAsync(int tmdbId);
     }
 }
