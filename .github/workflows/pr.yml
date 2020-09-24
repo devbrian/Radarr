@@ -15,7 +15,7 @@ jobs:
         dotnet-version: 3.1.100
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Run build.sh
+    - name: Run build.sh --framework netcoreapp3.1 --runtime Linux-x64
       run: ./build.sh
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
