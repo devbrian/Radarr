@@ -1,4 +1,3 @@
-﻿using System;
 using NLog;
 using NzbDrone.Common.Cloud;
 using NzbDrone.Common.Http;
@@ -11,8 +10,7 @@ namespace NzbDrone.Core.ImportLists.TMDb
     public abstract class TMDbImportListBase<TSettings> : HttpImportListBase<TSettings>
         where TSettings : TMDbSettingsBase<TSettings>, new()
     {
-        public override NetImportType ListType => NetImportType.TMDB;
-        public override TimeSpan RateLimit => TimeSpan.Zero;
+        public override ImportListType ListType => ImportListType.TMDB;
 
         public readonly ISearchForNewMovie _skyhookProxy;
         public readonly IHttpRequestBuilderFactory _requestBuilder;

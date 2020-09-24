@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 using NLog;
 using NLog.Fluent;
 using NzbDrone.Common.EnvironmentInfo;
@@ -30,7 +29,7 @@ namespace NzbDrone.Common.Http.Dispatchers
             _logger = logger;
         }
 
-        public async Task<HttpResponse> GetResponseAsync(HttpRequest request, CookieContainer cookies)
+        public HttpResponse GetResponse(HttpRequest request, CookieContainer cookies)
         {
             var webRequest = (HttpWebRequest)WebRequest.Create((Uri)request.Url);
 
@@ -79,7 +78,7 @@ namespace NzbDrone.Common.Http.Dispatchers
                     }
                 }
 
-                httpWebResponse = (HttpWebResponse)await webRequest.GetResponseAsync();
+                httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
             }
             catch (WebException e)
             {
@@ -122,7 +121,7 @@ namespace NzbDrone.Common.Http.Dispatchers
                 {
                     try
                     {
-                        data = await responseStream.ToBytes();
+                        data = responseStream.ToBytes();
 
                         if (PlatformInfo.IsMono && httpWebResponse.ContentEncoding == "gzip")
                         {

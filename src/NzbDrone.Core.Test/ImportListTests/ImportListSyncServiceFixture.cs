@@ -76,12 +76,8 @@ namespace NzbDrone.Core.Test.ImportList
                   .Returns(_importLists);
 
             Mocker.GetMock<IImportExclusionsService>()
-                  .Setup(v => v.IsMovieExcluded(It.IsAny<int>()))
-                  .Returns(false);
-
-            Mocker.GetMock<ISearchForNewMovie>()
-                  .Setup(v => v.MapMovieToTmdbMovieAsync(It.IsAny<Movie>()))
-                  .ReturnsAsync((Movie movie) => movie);
+                  .Setup(v => v.GetAllExclusions())
+                  .Returns(new List<ImportExclusion>());
 
             Mocker.GetMock<IMovieService>()
                   .Setup(v => v.MovieExists(It.IsAny<Movie>()))
