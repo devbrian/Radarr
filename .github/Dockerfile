@@ -21,4 +21,4 @@ RUN cp "frontend\gulp" "${APP_DIR}/bin"
 RUN rm -rf "${APP_DIR}/bin/Radarr.Update"
 RUN chmod -R u=rwX,go=rX "${APP_DIR}"
 
-COPY root/ /
+COPY .github/root/ /
