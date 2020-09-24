@@ -1,11 +1,11 @@
-name: Manual workflow
+name: PR Workflow
 
 on:
   pull_request:
     branches:
       - aphrodite
 jobs:
-  greet:
+  Build+Deploy:
     runs-on: ubuntu-latest
 
     steps:
