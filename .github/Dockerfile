@@ -17,7 +17,7 @@ ARG VERSION
 ARG PACKAGE_VERSION=${VERSION}
 ARG APP_DIR="/app"
 RUN mkdir "${APP_DIR}/bin"
-COPY frontend\gulp ${APP_DIR}/bin
+COPY frontend/gulp ${APP_DIR}/bin
 RUN rm -rf "${APP_DIR}/bin/Radarr.Update"
 RUN chmod -R u=rwX,go=rX "${APP_DIR}"
 
