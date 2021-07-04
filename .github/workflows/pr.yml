@@ -1,0 +1,38 @@
+name: PR Workflow
+
+on:
+  pull_request:
+    branches:
+      - aphrodite
+jobs:
+  Build-Deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1.7.0
+      with:
+        dotnet-version: 3.1.100
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Run build.sh --framework netcoreapp3.1 --runtime Linux-x64
+      run: ./build.sh
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to DockerHub
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v2
+      with:
+          file: .github/Dockerfile
+          push: true
+          tags: brianmedia/radarr:latest
+          
+
+
+
